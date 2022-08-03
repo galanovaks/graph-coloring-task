@@ -11,6 +11,7 @@ void solution1(struct graph *g, int v, int *n)
     struct graph *aux=g;
     struct list_vertex *aux1;
     int id[v],i;
+    *n=0;
     while (g!=NULL)
     {
         aux1=(*(*g).v).next;
