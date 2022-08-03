@@ -43,6 +43,7 @@ void output_graph(struct graph *g)
     {   
         tmp=(*g).v;
         printf("%d %d ",(*tmp).num,(*tmp).col);
+        /*
         tmp=(*tmp).next;
         while (tmp!=NULL)
         {
@@ -50,6 +51,7 @@ void output_graph(struct graph *g)
             tmp=(*tmp).next;
         }
         printf("\n");
+        */
         g=(*g).next;
     }
     g=aux;
