@@ -4,7 +4,7 @@ struct list_vertex
 {
     int num;
     int col;
-    struct vertex *next;
+    struct list_vertex *next;
 };
 
 struct graph
@@ -17,7 +17,7 @@ struct graph *create_graph(int ver)
 {
     int i;
     struct graph *tmp=malloc(sizeof(*tmp));
-    (*tmp).v=malloc(ver*sizeof((*(*tmp).v)));
+    (*tmp).v=malloc(sizeof((*(*tmp).v)));
     (*(*tmp).v).num=ver-1;
     (*(*tmp).v).col=-1;
     (*(*tmp).v).next=NULL;
@@ -38,10 +38,37 @@ struct graph *create_graph(int ver)
 void output_graph(struct graph *g)
 {
     struct graph *aux=g;
+    struct list_vertex *tmp;
     while (g!=NULL)
-    {
-        printf("%d %d\n",(*(*g).v).num,(*(*g).v).col);
+    {   
+        tmp=(*g).v;
+        printf("%d %d ",(*tmp).num,(*tmp).col);
+        tmp=(*tmp).next;
+        while (tmp!=NULL)
+        {
+            printf("%d ",(*tmp).num);
+            tmp=(*tmp).next;
+        }
+        printf("\n");
         g=(*g).next;
     }
+    g=aux;
+}
+
+void add_edge(struct graph *g,int v1,int v2)
+{
+    struct graph *aux=g;
+    struct list_vertex *tmp;
+    struct list_vertex *tmp1;
+    while ((*(*g).v).num!=v1)
+        g=(*g).next;
+    tmp=(*g).v;
+    while ((*tmp).next!=NULL)
+        tmp=(*tmp).next;
+    tmp1=malloc(sizeof(*tmp1));
+    (*tmp1).num=v2;
+    (*tmp1).col=-1;
+    (*tmp1).next=NULL;
+    (*tmp).next=tmp1;
     g=aux;
 }
