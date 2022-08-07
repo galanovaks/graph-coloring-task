@@ -1,72 +1,34 @@
-struct list_vertex
-{
-    int num;
-    int col;
-    struct list_vertex *next;
-};
-
-struct graph
-{
-    struct list_vertex *v;
-    struct graph *next;
-};
-
-struct graph *create_graph(int ver)
-{
-    int i;
-    struct graph *tmp=malloc(sizeof(*tmp));
-    (*tmp).v=malloc(sizeof((*(*tmp).v)));
-    (*(*tmp).v).num=ver-1;
-    (*(*tmp).v).col=-1;
-    (*(*tmp).v).next=NULL;
-    (*tmp).next=NULL;
-    for (i=ver-2;i>=0;i--)
+int **create_graph(int ver,int eg,FILE *f)
+{   
+    int **graph,c,i,j;
+    graph=malloc(ver*sizeof(int*));
+    for (i=0;i<ver;i++)
     {
-        struct graph *aux=malloc(ver*sizeof(*aux));
-        (*aux).v=malloc(ver*sizeof((*(*aux).v)));
-        (*(*aux).v).num=i;
-        (*(*aux).v).col=-1;
-        (*(*aux).v).next=NULL;
-        (*aux).next=tmp;
-        tmp=aux;
-    }
-    return(tmp);
-}
-
-void output_graph(struct graph *g)
-{
-    struct graph *aux=g;
-    struct list_vertex *tmp;
-    while (g!=NULL)
-    {   
-        tmp=(*g).v;
-        printf("%d %d ",(*tmp).num,(*tmp).col);
-        tmp=(*tmp).next;
-        while (tmp!=NULL)
+        graph[i]=malloc(ver*sizeof(int));
+        for (j=0;j<ver;j++)
         {
-            printf("%d ",(*tmp).num);
-            tmp=(*tmp).next;
+            graph[i][j]=0;
+            if (i==j)
+                graph[i][j]=1;
         }
-        printf("\n");
-        g=(*g).next;
+    }  
+    for (c=0;c<eg;c++)
+    {
+        fscanf(f,"%d %d",&i,&j);
+        graph[i][j]=1;
+        graph[j][i]=1;
     }
-    g=aux;
+    return graph;
 }
-
-void add_edge(struct graph *g,int v1,int v2)
+void output_graph(int **graph,int ver)
 {
-    struct graph *aux=g;
-    struct list_vertex *tmp;
-    struct list_vertex *tmp1;
-    while ((*(*g).v).num!=v1)
-        g=(*g).next;
-    tmp=(*g).v;
-    while ((*tmp).next!=NULL)
-        tmp=(*tmp).next;
-    tmp1=malloc(sizeof(*tmp1));
-    (*tmp1).num=v2;
-    (*tmp1).col=-1;
-    (*tmp1).next=NULL;
-    (*tmp).next=tmp1;
-    g=aux;
+    int i,j;
+    for (i=0;i<ver;i++)
+    {
+        printf("%d-",i);
+        for (j=0;j<ver;j++)
+            if (graph[i][j]==1)
+                printf("%d ",j);
+        printf("\n");
+    }
 }
