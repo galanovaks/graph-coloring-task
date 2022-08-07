@@ -20,6 +20,7 @@ int **create_graph(int ver,int eg,FILE *f)
     }
     return graph;
 }
+
 void output_graph(int **graph,int ver)
 {
     int i,j;

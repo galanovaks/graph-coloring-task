@@ -20,6 +20,8 @@ int main()
         int **g=create_graph(v,e,f);
         fclose(f);
         output_graph(g,v);
+        printf("\n");
+        solution(g,v);
    /* }*/
     return 0;
 }
