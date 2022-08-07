@@ -119,11 +119,34 @@ void filling_r(int **g, int v, struct rating *r)
     }
 }
 
+void change (int *i, int *j)
+{
+    *i+=*j;
+    *j=*i-*j;
+    *i=*i-*j;
+}
+
+void sort_r (struct rating *r)
+{
+    struct rating *aux=(*r).next;
+    while (aux!=NULL)
+    {
+        if ((*r).val>(*aux).val)
+        {
+            change(&(*r).val,&(*aux).val);
+            change(&(*r).vert,&(*aux).vert);
+        }
+        aux=(*aux).next;
+    }
+    if ((*r).next!=NULL)
+        sort_r((*r).next);
+}
+
 void solution(int **g,int v)
 {
     struct vert *l=create_list(g,v);
-    int i,j,min,max;
-    struct rating *r=create_r(v);
+    int i,j;
+    struct rating *aux,*r=create_r(v);
     intersection(g,v);
     connection(g,l,v);
     filling_r(g,v,r);
@@ -135,6 +158,8 @@ void solution(int **g,int v)
         }
         printf("\n");
     }
+    aux=r;
+    sort_r(aux);
     while (r!=NULL)
     {
         printf("%d-%d\n",(*r).vert,(*r).val);
