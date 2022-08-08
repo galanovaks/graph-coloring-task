@@ -5,31 +5,13 @@ struct rating
     struct rating *next;
 };
 
-struct rating *create_r(int v)
-{
-    int i;
-    struct rating *res=malloc(sizeof(*res));
-    (*res).vert=v-1;
-    (*res).val=0;
-    (*res).next=NULL;
-    for (i=v-2;i>=0;i--)
-    {   
-        struct rating *aux=malloc(sizeof(*aux));
-        (*aux).vert=i;
-        (*aux).val=0;
-        (*aux).next=res;
-        res=aux;
-    }
-    return res;
-}
-
 void connection(int **g,int v)
 {
     int i,j,n;
     for (i=0;i<v-1;i++)  
         for (j=i+1;j<v;j++)
             for (n=0;n<v;n++)
-                if ((g[i][n]<0)&&(g[i][n]==g[j][n]))
+                if ((g[i][n]==-2)&&(g[i][n]==g[j][n])&&(g[i][j]!=-2))
                 {
                     g[i][j]++;
                     g[j][i]++;
@@ -47,100 +29,124 @@ void intersection(int **g,int v)
                 g[i][j]=-2;
 }
 
-void filling_r(int **g, int v, struct rating *r)
+int **get_priority(int **g,int v)
 {
-    int i,j;
-    struct rating *aux=r;
+    int i,j,n,m,f;
+    int**pr;
+    pr=malloc(v*sizeof(int*));
     for (i=0;i<v;i++)
     {
+        pr[i]=malloc(v*sizeof(int));
         for (j=0;j<v;j++)
-            if (g[i][j]!=0)
-            (*aux).val++;
-        aux=(*aux).next;
-    }
-}
-
-void change (int *i, int *j)
-{
-    *i+=*j;
-    *j=*i-*j;
-    *i=*i-*j;
-}
-
-void sort_r (struct rating *r)
-{
-    struct rating *aux=(*r).next;
-    while (aux!=NULL)
+            pr[i][j]=0;
+    }    
+    for (i=0;i<v;i++)
     {
-        if ((*r).val>(*aux).val)
+        f=0;
+        m=v;
+        for (n=0;n<v;n++)
         {
-            change(&(*r).val,&(*aux).val);
-            change(&(*r).vert,&(*aux).vert);
+            for (j=0;j<v;j++)
+            {
+                if (g[i][j]==n)
+                {
+                    pr[i][n]++;
+                    m--;
+                }
+                if ((f==0)&&(g[i][j]<0))
+                    m--;
+            }
+            if (m==0)
+                break;
+            f=1;
         }
-        aux=(*aux).next;
     }
-    if ((*r).next!=NULL)
-        sort_r((*r).next);
+    return pr;
+}
+
+int *vert_pr(int **pr,int v)
+{
+    int i,j,n,w,c,s;
+    int *p=malloc(v*sizeof(int));
+    for (i=0;i<v;i++)
+        p[i]=-1;
+    for (i=0;i<v;i++)
+    {
+        w=0;
+        for (j=0;j<v;j++)
+        {
+            for (n=0;((n<v)&&(pr[i][n]==pr[j][n]));n++);
+            if (n<v)
+            {
+                if (pr[i][n]>=pr[j][n])
+                    w++;
+            }
+            else
+                w++;
+        }
+        c=v-w;
+        for (s=0;s<v;s++)
+        {
+            if ((s>=c)&&(p[s]==-1))
+            {
+                p[s]=i;
+                break;
+            }
+        }
+    }
+       return p;
 }
 
 void solution(int **g,int v)
 {
-    int i,j,k,k1,k2;
-    struct rating *aux,*r=create_r(v);
+    int i,j,n,k,m;
     int **coloring,*color,res=0;
     intersection(g,v);
-    printf("*");
     connection(g,v);
-    printf("*");
-    filling_r(g,v,r);
-    printf("*");
-    aux=r;
-    sort_r(aux);
-    aux=r;
-    while(aux!=NULL)
+    int **prior=get_priority(g,v);
+/*    for (i=0;i<v;i++)
     {
-        printf("%d-%d\n",(*aux).vert,(*aux).val);
-        aux=(*aux).next;
-    }
+        for (j=0;j<v;j++)
+            printf("%d ",g[i][j]);
+        printf("\n");
+    }*/
+    int *p=vert_pr(prior,v);
+/*    for (i=0;i<v;i++)
+        printf("\n%d-%d\n",i,p[i]);*/
     coloring=malloc(v*sizeof(int*));
     for (i=0;i<v;i++)
     {   
-    k=0;k1=0;k2=0;
         coloring[i]=malloc(v*sizeof(int));
         for (j=0;j<v;j++)
-        {
             coloring[i][j]=0;
-            printf("%d ",g[i][j]);
-            if (g[i][j]==0)
-            k++;
-            if (g[i][j]==1)
-            k1++;
-            if (g[i][j]==2)
-            k2++;
-        }
-        printf("\n%d-%d,%d,%d\n",i,k,k1,k2);
     }
     color=malloc(v*sizeof(int));
-    while (r!=NULL)
+    for (n=0;n<v;n++)
     {
-        for(i=0;coloring[(*r).vert][i]!=0;i++);   
-        coloring[(*r).vert][i]=2;
-        color[(*r).vert]=i;
+        for(i=0;coloring[p[n]][i]==1;i++);   
+        coloring[p[n]][i]=2;
+        color[p[n]]=i;
         for(j=0;j<v;j++)
-            if (g[(*r).vert][j]==-2)
+            if (g[p[n]][j]==-2)
                 coloring[j][i]=1;
         if (res<i)
             res=i;
-        r=(*r).next;
+       /* for (k=0;k<v;k++)
+        {
+            for (m=0;m<v;m++)
+                printf("%d ",coloring[m][k]);
+            printf("\n");
+        }
+        printf("\n");*/
     }
     res++;
-    printf("%d\n",res);
-    for(i=0;i<res;i++)
+    printf("%d\n",res);/*
+    for(i=0;i<v;i++)
     {
         for(j=0;j<v;j++)
             printf("%d ",coloring[j][i]);
         printf("\n");
     }
     for(i=0;i<v;i++)
-        printf("%d-%d\n",i,color[i]);
+        printf("%d-%d\n",i,color[i]);*/
 }
