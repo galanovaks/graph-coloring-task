@@ -8,8 +8,6 @@ int **create_graph(int ver,int eg,FILE *f)
         for (j=0;j<ver;j++)
         {
             graph[i][j]=0;
-            if (i==j)
-                graph[i][j]=1;
         }
     }  
     for (c=0;c<eg;c++)
@@ -26,10 +24,9 @@ void output_graph(int **graph,int ver)
     int i,j;
     for (i=0;i<ver;i++)
     {
-        printf("%d-",i);
         for (j=0;j<ver;j++)
-            if (graph[i][j]==1)
-                printf("%d ",j);
+            printf("%d,",graph[i][j]);
         printf("\n");
+            
     }
 }
