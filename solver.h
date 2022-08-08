@@ -1,9 +1,3 @@
-struct vert
-{
-    int val;
-    struct vert *next;
-};
-
 struct rating
 {
     int vert;
@@ -29,71 +23,17 @@ struct rating *create_r(int v)
     return res;
 }
 
-struct vert *create_list(int **g,int v)
+void connection(int **g,int v)
 {
-    struct vert *aux,*l=malloc(v*sizeof(*l));
-    int i,j;
-    (*l).val=0;
-    for (j=0;j<v;j++)
-    {
-        if (g[0][j]==1)
-            (*l).val++;
-        (*l).val<<=1;
-    }
-    (*l).val>>=1;
-    (*l).next=NULL;
-    aux=l;
-    for (i=1;i<v;i++)
-    {
-        struct vert *tmp=malloc(v*sizeof(*tmp));
-        (*tmp).val=0;
-        for(j=0;j<v;j++)
-        {
-            if (g[i][j]==1)
-                (*tmp).val++;
-            (*tmp).val<<=1;
-        }
-        (*tmp).val>>=1;
-        (*tmp).next=NULL;
-        (*aux).next=tmp;
-        aux=(*aux).next;
-    }       
-    return l;
-}
-
-int counter(int res)
-{
-    int c=0;
-    while (res!=0)
-    {
-        if (res%2!=0)
-            c++;
-        res>>=1;
-    }
-    return c;
-}
-
-void connection(int **g,struct vert *l,int v)
-{
-    struct vert *aux,*tmp;
-    int i,j;
-    for (i=0;i<v-1;i++)
-    {
-        aux=l;    
+    int i,j,n;
+    for (i=0;i<v-1;i++)  
         for (j=i+1;j<v;j++)
-        {
-            aux=(*aux).next;
-            if (g[i][j]==0)
-            {
-                g[i][j]=counter((*l).val&(*aux).val);
-                g[j][i]=g[i][j];
-            }
-        }
-        tmp=l;
-        l=(*l).next;
-        free(tmp);
-   }
-   free(l);
+            for (n=0;n<v;n++)
+                if ((g[i][n]<0)&&(g[i][n]==g[j][n]))
+                {
+                    g[i][j]++;
+                    g[j][i]++;
+                }
 }
 
 void intersection(int **g,int v)
@@ -114,7 +54,8 @@ void filling_r(int **g, int v, struct rating *r)
     for (i=0;i<v;i++)
     {
         for (j=0;j<v;j++)
-            (*aux).val+=abs(g[i][j]);
+            if (g[i][j]!=0)
+            (*aux).val++;
         aux=(*aux).next;
     }
 }
@@ -144,25 +85,62 @@ void sort_r (struct rating *r)
 
 void solution(int **g,int v)
 {
-    struct vert *l=create_list(g,v);
-    int i,j;
+    int i,j,k,k1,k2;
     struct rating *aux,*r=create_r(v);
+    int **coloring,*color,res=0;
     intersection(g,v);
-    connection(g,l,v);
+    printf("*");
+    connection(g,v);
+    printf("*");
     filling_r(g,v,r);
-    for (i=0;i<v;i++)
-    {
-        for (j=0;j<v;j++)
-        {
-            printf("%d ",g[i][j]); 
-        }
-        printf("\n");
-    }
+    printf("*");
     aux=r;
     sort_r(aux);
+    aux=r;
+    while(aux!=NULL)
+    {
+        printf("%d-%d\n",(*aux).vert,(*aux).val);
+        aux=(*aux).next;
+    }
+    coloring=malloc(v*sizeof(int*));
+    for (i=0;i<v;i++)
+    {   
+    k=0;k1=0;k2=0;
+        coloring[i]=malloc(v*sizeof(int));
+        for (j=0;j<v;j++)
+        {
+            coloring[i][j]=0;
+            printf("%d ",g[i][j]);
+            if (g[i][j]==0)
+            k++;
+            if (g[i][j]==1)
+            k1++;
+            if (g[i][j]==2)
+            k2++;
+        }
+        printf("\n%d-%d,%d,%d\n",i,k,k1,k2);
+    }
+    color=malloc(v*sizeof(int));
     while (r!=NULL)
     {
-        printf("%d-%d\n",(*r).vert,(*r).val);
+        for(i=0;coloring[(*r).vert][i]!=0;i++);   
+        coloring[(*r).vert][i]=2;
+        color[(*r).vert]=i;
+        for(j=0;j<v;j++)
+            if (g[(*r).vert][j]==-2)
+                coloring[j][i]=1;
+        if (res<i)
+            res=i;
         r=(*r).next;
     }
+    res++;
+    printf("%d\n",res);
+    for(i=0;i<res;i++)
+    {
+        for(j=0;j<v;j++)
+            printf("%d ",coloring[j][i]);
+        printf("\n");
+    }
+    for(i=0;i<v;i++)
+        printf("%d-%d\n",i,color[i]);
 }
