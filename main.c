@@ -19,7 +19,6 @@ int main()
         fscanf(f,"%d %d",&v,&e);
         int **g=create_graph(v,e,f);
         printf("%s-",files[j]);
-        printf("\n");
         fclose(f);
         solution(g,v);
         printf("\n");

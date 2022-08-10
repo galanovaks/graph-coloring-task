@@ -28,13 +28,22 @@ void intersection(int **g,int v)
             if (g[i][j]==1)
                 g[i][j]=-2;
 }
-/*
-int **get_priority_rec(int **pr)
+
+int **get_priority(int **g,int v)
 {
     int i,j,n,m,f;
-    int *pr;    
+    int **pr;    
+    pr=malloc(v*sizeof(int*));
     for (i=0;i<v;i++)
     {
+        pr[i]=malloc(v*sizeof(int));
+        for (j=0;j<v;j++)
+            pr[i][j]=0;
+    }
+    for (i=0;i<v;i++)
+    {
+        f=0;
+        m=v;
         for (n=0;n<v;n++)
         {
             for (j=0;j<v;j++)
@@ -47,6 +56,9 @@ int **get_priority_rec(int **pr)
                 if ((f==0)&&(g[i][j]<0))
                     m--;
             }
+            if (m==0)
+                break;
+            f=1;
         }
     }
     return pr;
@@ -84,7 +96,7 @@ int *vert_pr(int **pr,int v)
     }
        return p;
 }
-*/
+
 void add_vert_cyc(struct cycle *c,int **g,int n)
 {
     struct cycle *tmp=c;
@@ -120,23 +132,26 @@ void delete_c(struct cycle *c)
 
 struct cycle *max_comp_g(int **g,int v,int *a,int *nofut)
 {
-    int i,j,n,s1,s2;
+    int i,j,n,s1,s2,s_i;
     struct cycle *res=malloc(sizeof(int));
     (*res).vert=-1;
     (*res).next=NULL;
     s1=-1;
     for (i=0;i<v;i++)
     {   
+        s_i=0;
         if (a[i]!=1)
             continue;
         for (j=0;j<v;j++)
         {
             if (a[j]!=1)
                 continue;
+            if (a[i]!=1)
+                break;
             struct cycle *aux=malloc(sizeof(int));
             (*aux).vert=i;
             (*aux).next=NULL;
-            s1=0;
+            s2=0;
             if (g[i][j]==-2)
             {    
                 struct cycle *tmp=malloc(sizeof(int));
@@ -156,7 +171,9 @@ struct cycle *max_comp_g(int **g,int v,int *a,int *nofut)
                             s2++;
                     }
                 }
-                if (s2>1)
+                if (s2>s_i)
+                    s_i=s2;
+                if (s2>=2)
                 {
                     if (s2>s1)
                     {
@@ -166,17 +183,17 @@ struct cycle *max_comp_g(int **g,int v,int *a,int *nofut)
                     }
                     else
                     {
-                        delete_c(tmp);
+                        delete_c(aux);
                     }
                 }
-                else
-                {
-                    a[i]=0;
-                    a[v]--;
-                    nofut[i]=1;
-                    nofut[v]++;
-                }
             }
+        }
+        if (s_i<2)
+        {
+            a[i]=0;
+            a[v]--;
+            nofut[i]=1;
+            nofut[v]++;
         }
     }
     return res;
@@ -184,40 +201,31 @@ struct cycle *max_comp_g(int **g,int v,int *a,int *nofut)
 
 void solution(int **g,int v)
 {
-    int i,j,n,k,m;
+    int i,j,n,k,m,count=0;
     intersection(g,v);
     connection(g,v);
     int *appl,*nofut,*fin;
     appl=malloc((v+1)*sizeof(int));
     nofut=malloc((v+1)*sizeof(int));
-    fin=malloc((v+1)*sizeof(int));
-    for (i=0;i<v;i++)
-        appl[i]=1;
     for (i=0;i<v;i++)
     {
-        fin[i]=0;
+        appl[i]=1;
         nofut[i]=0;
     }
     appl[v]=v;
     nofut[v]=0;
-    fin[v]=0;
-    struct cycle *c=max_comp_g(g,v,appl,nofut);
-    while(c!=NULL)
+    struct cycle *tmp,*c=max_comp_g(g,v,appl,nofut);
+    int **coloring,*color,res=0;
+    int **pr=get_priority(g,v);
+    int *p=vert_pr(pr,v);
+    int **p_c=malloc(2*sizeof(int*));
+    for (i=0;i<2;i++)
+        p_c[i]=malloc(v*sizeof(int));
+    for(i=0;i<v;i++)
     {
-        printf("*%d*",(*c).vert);
-        c=(*c).next;
+        p_c[0][p[i]]=i;
+        p_c[1][i]=0;
     }
-/*    int **coloring,*color,res=0;
-    connection(g,v);
-    int **pr;
-    pr=malloc(v*sizeof(int*));
-    for (i=0;i<v;i++)
-    {
-        pr[i]=malloc(v*sizeof(int));
-        for (j=0;j<v;j++)
-            pr[i][j]=0;
-    }
-    int *p=vert_pr(prior,v);
     coloring=malloc(v*sizeof(int*));
     for (i=0;i<v;i++)
     {   
@@ -226,28 +234,52 @@ void solution(int **g,int v)
             coloring[i][j]=0;
     }
     color=malloc(v*sizeof(int));
-    for (n=0;n<v;n++)
+    while (count!=v)
     {
-        for(i=0;coloring[p[n]][i]==1;i++);   
-        coloring[p[n]][i]=2;
-        color[p[n]]=i;
-        for(j=0;j<v;j++)
-            if (g[p[n]][j]==-2)
-                coloring[j][i]=1;
-        if (res<i)
-            res=i;
-        for (i=0;i<v;i++)
-        printf("%d\n",p[n]);
-        for (k=0;k<=res;k++)
+        if ((*c).vert!=-1)
         {
-            for (m=0;m<v;m++)
-                printf("%d ",coloring[m][k]);
-            printf("\n");
+            tmp=c;
+            while (tmp!=NULL)
+            {
+                p_c[1][(*tmp).vert]=1;
+                appl[(*tmp).vert]=0;
+                appl[v]--;
+                tmp=(*tmp).next;
+            }
         }
+        else
+        {
+            for (i=0;i<v;i++)
+                if (nofut[i]==1)
+                    p_c[1][i]=1;
+        }
+        for (i=0;i<v;i++)
+            if (p_c[1][p[i]]==1)
+        {
+            count++;      
+            p_c[1][p[i]]=-1;
+            for(n=0;coloring[p[i]][n]==1;n++);   
+            coloring[p[i]][n]=2;
+            color[p[i]]=n;
+            for(j=0;j<v;j++)
+                if (g[p[i]][j]==-2)
+                    coloring[j][n]=1;
+            if (res<n)
+                res=n;
+
+/*            for (k=0;k<=res;k++)
+            {
+                for (m=0;m<v;m++)
+                    printf("%d ",coloring[m][k]);
+                printf("\n");
+            }
+            printf("\n");*/
+        }
+        c=max_comp_g(g,v,appl,nofut);
     }
     res++;
     printf("%d\n",res);
-    for(i=0;i<res;i++)
+/*    for(i=0;i<res;i++)
     {
         for(j=0;j<v;j++)
             printf("%d ",coloring[j][i]);
