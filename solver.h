@@ -201,7 +201,7 @@ struct cycle *max_comp_g(int **g,int v,int *a,int *nofut)
 
 void solution(int **g,int v)
 {
-    int i,j,n,k,m,count=0;
+    int i,j,n,k,m,count=0,f=0;
     intersection(g,v);
     connection(g,v);
     int *appl,*nofut,*fin;
@@ -279,12 +279,16 @@ void solution(int **g,int v)
     }
     res++;
     printf("%d\n",res);
-/*    for(i=0;i<res;i++)
+    for(i=0;i<v;i++)
     {
         for(j=0;j<v;j++)
-            printf("%d ",coloring[j][i]);
-        printf("\n");
+            if ((g[i][j]==-2)&&(color[j]==color[i]))
+                f=1;
     }
-    for(i=0;i<v;i++)
+    if (f==0)
+        printf("OK");
+    else
+        printf("FATAL ERROR");
+   /* for(i=0;i<v;i++)
         printf(" %d-%d;",i,color[i]);*/
 }
