@@ -13,15 +13,14 @@ int main()
     "500_5","500_7","500_9","1000_1","1000_3","1000_5","1000_7",
     "1000_9"};
     FILE *f;
-    for(j=0;j<36;j++)
-    {
-        f=fopen(files[j],"r");
+//    for(j=0;j<36;j++)
+//    {
+        f=fopen(files[3],"r");
         fscanf(f,"%d %d",&v,&e);
         int **g=create_graph(v,e,f);
-        printf("%s-",files[j]);
+        printf("%s-",files[3]);
         fclose(f);
         solution(g,v);
-        printf("\n");
-    }
+//    }
     return 0;
 }

@@ -24,9 +24,21 @@ void output_graph(int **graph,int ver)
     {
         printf("%d-",i);
         for (j=0;j<ver;j++)
-            if (graph[i][j]==1)
+            if (graph[i][j]==-2)
                 printf("%d,",j);
         printf("\n");
             
     }
 }
+
+void output_graph_0(int **graph, int ver)
+{
+    int i,j;
+    for (i=0;i<ver;i++)
+    {
+        printf("\n");
+        for (j=0;j<ver;j++)
+            printf("%d,",graph[i][j]);
+    }
+    printf("\n");
+}    
