@@ -5,19 +5,6 @@ struct cycle
     struct cycle *next;
 };
 
-void connection(int **g,int v)
-{
-    int i,j,n;
-    for (i=0;i<v-1;i++)  
-        for (j=i+1;j<v;j++)
-            for (n=0;n<v;n++)
-                if ((g[i][n]==-2)&&(g[i][n]==g[j][n])&&(g[i][j]!=-2))
-                {
-                    g[i][j]++;
-                    g[j][i]++;
-                }
-}
-
 void intersection(int **g,int v)
 {
     int i,j;
@@ -27,74 +14,6 @@ void intersection(int **g,int v)
         for(j=0;j<v;j++)
             if (g[i][j]==1)
                 g[i][j]=-2;
-}
-
-int **get_priority(int **g,int v)
-{
-    int i,j,n,m,f;
-    int **pr;    
-    pr=malloc(v*sizeof(int*));
-    for (i=0;i<v;i++)
-    {
-        pr[i]=malloc(v*sizeof(int));
-        for (j=0;j<v;j++)
-            pr[i][j]=0;
-    }
-    for (i=0;i<v;i++)
-    {
-        f=0;
-        m=v;
-        for (n=0;n<v;n++)
-        {
-            for (j=0;j<v;j++)
-            {
-                if (g[i][j]==n)
-                {
-                    pr[i][n]++;
-                    m--;
-                }
-                if ((f==0)&&(g[i][j]<0))
-                    m--;
-            }
-            if (m==0)
-                break;
-            f=1;
-        }
-    }
-    return pr;
-}
-
-int *vert_pr(int **pr,int v)
-{
-    int i,j,n,w,c,s;
-    int *p=malloc(v*sizeof(int));
-    for (i=0;i<v;i++)
-        p[i]=-1;
-    for (i=0;i<v;i++)
-    {
-        w=0;
-        for (j=0;j<v;j++)
-        {
-            for (n=0;((n<v)&&(pr[i][n]==pr[j][n]));n++);
-            if (n<v)
-            {
-                if (pr[i][n]>=pr[j][n])
-                    w++;
-            }
-            else
-                w++;
-        }
-        c=v-w;
-        for (s=0;s<v;s++)
-        {
-            if ((s>=c)&&(p[s]==-1))
-            {
-                p[s]=i;
-                break;
-            }
-        }
-    }
-       return p;
 }
 
 void add_vert_cyc(struct cycle *c,int **g,int n)
@@ -130,7 +49,7 @@ void delete_c(struct cycle *c)
     }
 }
 
-struct cycle *max_comp_g(int **g,int v,int *nofut)
+struct cycle *max_comp_g(int **g,int v,int *nofut,int *krasim)
 {
     int i,j,n,s1,s2,s_i;
     struct cycle *res=malloc(sizeof(int));
@@ -140,11 +59,11 @@ struct cycle *max_comp_g(int **g,int v,int *nofut)
     for (i=0;i<v;i++)
     {   
         s_i=0;
-        if (nofut[i]==1)
+        if ((nofut[i]==1)||(krasim[i]==-1))
             continue;
         for (j=0;j<v;j++)
         {
-            if (nofut[j]==1)
+            if ((nofut[j]==1)||(krasim[j]==-1))
                 continue;
             struct cycle *aux=malloc(sizeof(int));
             (*aux).vert=i;
@@ -159,7 +78,7 @@ struct cycle *max_comp_g(int **g,int v,int *nofut)
                 s2=1;
                 for (n=0;n<v;n++)
                 {   
-                    if (nofut[n]==1)
+                    if ((nofut[n]==1)||(krasim[n]==-1))
                         continue;
                     if  ((g[i][n]==-2)&&(g[j][n]==-2))
                     {
@@ -197,7 +116,7 @@ struct cycle *max_comp_g(int **g,int v,int *nofut)
 
 void block_eg(int **g,struct cycle *c,int *f,int s)
 {
-    int *aux=malloc(s*sizeof(int));
+/*    int *aux=malloc(s*sizeof(int));
     int i,k;
     struct cycle *tmp=c;
     for (i=0;i<s;i++)
@@ -217,30 +136,43 @@ void block_eg(int **g,struct cycle *c,int *f,int s)
         }
         k++;
         tmp=(*tmp).next;
-    }
+    }*/
     delete_c(c);
+}
+
+void pokras(int **g,int v,int *nofut,int *c,int **col,int *r,int i)
+{
+    int j,n;
+    for(n=0;col[i][n]==1;n++);   
+    col[i][n]=2;
+    c[i]=n;
+    for(j=0;j<v;j++)
+        if (g[i][j]==-2)
+    {
+            col[j][n]=1;
+            nofut[j]=1;
+    }
+    if (*r<n)                                                               
+        *r=n;
+//    printf("%d^%d\n",i,n);
 }
 
 void solution(int **g,int v)
 {
-    output_graph_0(g,v);
-    int i,j,n,count=0,f=0,size,k,m;
+//    output_graph_0(g,v);
+    int i,j,n,count=0,f=0,size,k,m,min,minv,mink;
     intersection(g,v);
-    connection(g,v);
-    int *nofut,*fin;
+    int *nofut,*fin,*krasim=malloc(v*sizeof(int));
     fin=malloc(v*sizeof(int));
     nofut=malloc(v*sizeof(int));
     for (i=0;i<v;i++)
     {
         fin[i]=0;
         nofut[i]=0;
+        krasim[i]=0;
     }
-    struct cycle *tmp,*c=max_comp_g(g,v,nofut);
+    struct cycle *tmp,*c=max_comp_g(g,v,nofut,krasim);
     int **coloring,*color,res=0;
-    int **pr,*p;
-    int **p_c=malloc(2*sizeof(int*));
-    for (i=0;i<2;i++)
-        p_c[i]=malloc(v*sizeof(int));
     coloring=malloc(v*sizeof(int*));
     for (i=0;i<v;i++)
     {   
@@ -249,66 +181,78 @@ void solution(int **g,int v)
             coloring[i][j]=0;
     }
     color=malloc(v*sizeof(int));
-    output_graph(g,v);
+//    output_graph(g,v);
     while (count!=v)
     {
-        pr=get_priority(g,v);
-        p=vert_pr(pr,v);
-        for (i=0;i<v;i++)
-        {
-            p_c[0][p[i]]=i;
-            p_c[1][i]=0;
-        }
         if ((*c).vert!=-1)
         {
             size=0;
             tmp=c;
-            printf("\ncycle-");
+//            printf("\ncycle-");
             while (tmp!=NULL)
             {
                 size++;
-                printf("%d ",(*tmp).vert);
-                p_c[1][(*tmp).vert]=1;
+                if (krasim[(*tmp).vert]==0)
+                {
+                    krasim[(*tmp).vert]=-1;
+                    count++;
+                    pokras(g,v,nofut,color,coloring,&res,(*tmp).vert);
+  /*                  for (k=0;k<=res;k++)
+                    {
+                        for (m=0;m<v;m++)
+                            printf("%d ",coloring[m][k]);
+                        printf("\n");
+                    }  */ 
+                }
                 tmp=(*tmp).next;
             }
-            printf("\n");
+//            printf("\n");
         }
         else
         {
-            for (i=0;i<v;i++)
-                if (nofut[i]==1)
-                    p_c[1][i]=1;
-        }
-        for (i=v-1;i>=0;i--)
-        {
-            if (fin[p[i]]==1)
-                continue;
-            if (p_c[1][p[i]]==1)
-        {
+        for (i=0;i<v-count;i++)
+        {   
+            min=res+1;
+            for (j=0;j<v;j++)
+            {   
+                mink=0;
+                if (krasim[j]!=-1)
+                {
+                    for (n=0;n<=res;n++)
+                        if (coloring[j][n]==0)
+                            mink++; 
+                    if (min>=mink)
+                    {
+                        min=mink;
+                        minv=j;
+                    }
+                }       
+            }
+            krasim[minv]=-1;
             count++; 
-            printf("%d\n",p[i]);
-            for(n=0;coloring[p[i]][n]==1;n++);   
-            coloring[p[i]][n]=2;
-            color[p[i]]=n;
+//            printf("%d count %d\n",minv,count);
+            for(n=0;coloring[minv][n]==1;n++);   
+            coloring[minv][n]=2;
+            color[minv]=n;
             for(j=0;j<v;j++)
-                if (g[p[i]][j]==-2)
+                if (g[minv][j]==-2)
                     coloring[j][n]=1;
             if (res<n)
                 res=n;
-        for (k=0;k<=res;k++)
+/*        for (k=0;k<=res;k++)
         {
             for (m=0;m<v;m++)
                 printf("%d ",coloring[m][k]);
             printf("\n");
         }
-        printf("\n");
+        printf("\n");*/
         }
         }
         tmp=c;
         if ((*tmp).vert!=-1)
         {
             block_eg(g,tmp,fin,size);
-            c=max_comp_g(g,v,nofut);
+            c=max_comp_g(g,v,nofut,krasim);
         }
     }
     res++;
@@ -323,10 +267,13 @@ void solution(int **g,int v)
         printf("OK\n");
     else
         printf("FATAL ERROR\n");
-/*    for(i=0;i<res;i++)
-    {
+    
+/*    for(i=0;i<v;i++)
+    {   
+        printf("%d-",color[i]);
         for(j=0;j<v;j++)
-            printf("%d ",coloring[j][i]);
+            if (g[i][j]==-2)
+                printf("%d,",color[j]);
         printf("\n");
     }
     for(i=0;i<v;i++)
