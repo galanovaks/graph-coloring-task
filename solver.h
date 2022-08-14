@@ -114,32 +114,6 @@ struct cycle *max_comp_g(int **g,int v,int *nofut,int *krasim)
     return res;
 }
 
-void block_eg(int **g,struct cycle *c,int *f,int s)
-{
-/*    int *aux=malloc(s*sizeof(int));
-    int i,k;
-    struct cycle *tmp=c;
-    for (i=0;i<s;i++)
-    {
-        aux[i]=(*tmp).vert;
-        f[(*tmp).vert]=1;
-        tmp=(*tmp).next;
-    }
-    tmp=c;
-    k=1;
-    while ((*tmp).next!=NULL)
-    {
-        for(i=k;i<s;i++)
-        {
-            g[(*tmp).vert][aux[i]]=-3;
-            g[aux[i]][(*tmp).vert]=-3;
-        }
-        k++;
-        tmp=(*tmp).next;
-    }*/
-    delete_c(c);
-}
-
 void pokras(int **g,int v,int *nofut,int *c,int **col,int *r,int i)
 {
     int j,n;
@@ -202,56 +176,66 @@ void solution(int **g,int v)
                         for (m=0;m<v;m++)
                             printf("%d ",coloring[m][k]);
                         printf("\n");
-                    }  */ 
+                    } */  
                 }
                 tmp=(*tmp).next;
             }
 //            printf("\n");
         }
         else
-        {
-        for (i=0;i<v-count;i++)
         {   
-            min=res+1;
-            for (j=0;j<v;j++)
+            for (i=0;i<v;i++)
+                if (krasim[i]!=-1)
+                    for (j=0;j<v;j++)
+                        if ((g[i][j]==-2)&&(krasim[j]!=-1))
+                            krasim[i]++;
+            for (i=0;i<v-count;i++)
             {   
-                mink=0;
-                if (krasim[j]!=-1)
-                {
-                    for (n=0;n<=res;n++)
-                        if (coloring[j][n]==0)
-                            mink++; 
-                    if (min>=mink)
+                min=res+2;
+                for (j=0;j<v;j++)
+                {   
+                    mink=0;
+                    if (krasim[j]!=-1)
                     {
-                        min=mink;
-                        minv=j;
-                    }
-                }       
+                        for (n=0;n<=res;n++)
+                            if (coloring[j][n]==0)
+                                mink++; 
+                        if (min>mink)
+                        {
+                            min=mink;
+                            minv=j;
+                        }
+                        if ((min==mink)&&(krasim[minv]<krasim[j]))
+                            minv=j;
+                    }          
+                }
+                for (j=0;j<v;j++)
+                    if ((krasim[j]!=-1)&&(g[minv][j]==-2))
+                        krasim[j]--;
+                krasim[minv]=-1;
+                count++; 
+  //              printf("%d count %d\n",minv,count);
+                for(n=0;coloring[minv][n]==1;n++);   
+                coloring[minv][n]=2;
+                color[minv]=n;
+                for(j=0;j<v;j++)
+                    if (g[minv][j]==-2)
+                        coloring[j][n]=1;
+                if (res<n)
+                    res=n;
+    /*        for (k=0;k<=res;k++)
+            {
+                for (m=0;m<v;m++)
+                    printf("%d ",coloring[m][k]);
+                printf("\n");
             }
-            krasim[minv]=-1;
-            count++; 
-//            printf("%d count %d\n",minv,count);
-            for(n=0;coloring[minv][n]==1;n++);   
-            coloring[minv][n]=2;
-            color[minv]=n;
-            for(j=0;j<v;j++)
-                if (g[minv][j]==-2)
-                    coloring[j][n]=1;
-            if (res<n)
-                res=n;
-/*        for (k=0;k<=res;k++)
-        {
-            for (m=0;m<v;m++)
-                printf("%d ",coloring[m][k]);
-            printf("\n");
-        }
-        printf("\n");*/
-        }
+            printf("\n");*/
+            }
         }
         tmp=c;
         if ((*tmp).vert!=-1)
         {
-            block_eg(g,tmp,fin,size);
+            delete_c(tmp);
             c=max_comp_g(g,v,nofut,krasim);
         }
     }
@@ -268,14 +252,12 @@ void solution(int **g,int v)
     else
         printf("FATAL ERROR\n");
     
-/*    for(i=0;i<v;i++)
+/*    for(i=0;i<res;i++)
     {   
-        printf("%d-",color[i]);
         for(j=0;j<v;j++)
-            if (g[i][j]==-2)
-                printf("%d,",color[j]);
+            printf("%d ",coloring[j][i]);
         printf("\n");
     }
     for(i=0;i<v;i++)
-        printf(" %d-%d;",i,color[i]);*/
-}
+        printf(" %d-%d;",i,color[i]);
+*/}
