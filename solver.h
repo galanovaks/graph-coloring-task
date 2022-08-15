@@ -134,7 +134,7 @@ void pokras(int **g,int v,int *nofut,int *c,int **col,int *r,int i)
 void solution(int **g,int v)
 {
 //    output_graph_0(g,v);
-    int i,j,n,count=0,f=0,size,k,m,min,minv,mink;
+    int i,j,n,count=0,f=0,size,k,m,min,minv,mink,n1,n2;
     intersection(g,v);
     int *nofut,*fin,*krasim=malloc(v*sizeof(int));
     fin=malloc(v*sizeof(int));
@@ -155,6 +155,8 @@ void solution(int **g,int v)
             coloring[i][j]=0;
     }
     color=malloc(v*sizeof(int));
+    for (i=0;i<v;i++)
+        color[i]=0;
 //    output_graph(g,v);
     while (count!=v)
     {
@@ -192,25 +194,43 @@ void solution(int **g,int v)
             for (i=0;i<v-count;i++)
             {   
                 min=res+2;
+                n1=res+1;
                 for (j=0;j<v;j++)
                 {   
                     mink=0;
+                    n2=res+2;
                     if (krasim[j]!=-1)
                     {
                         for (n=0;n<=res;n++)
                             if (coloring[j][n]==0)
+                            {
                                 mink++; 
+                                n2=n;
+                            }
                         if (min>mink)
                         {
                             min=mink;
                             minv=j;
+                            n1=n2;
                         }
-                        if ((min==mink)&&(krasim[minv]<krasim[j]))
-                            minv=j;
+                        if (min==mink)
+                        {
+                            if (krasim[minv]<krasim[j])
+                            {
+                                minv=j;
+                                n1=n2;
+                            }
+                            if (krasim[minv]==krasim[j])
+                                if (n2>n1)
+                                {
+                                    minv=j;
+                                    n1=n2;
+                                }
+                         }
                     }          
                 }
                 for (j=0;j<v;j++)
-                    if ((krasim[j]!=-1)&&(g[minv][j]==-2))
+                    if ((krasim[j]!=-1)&&(g[j][minv]==-2))
                         krasim[j]--;
                 krasim[minv]=-1;
                 count++; 
@@ -244,7 +264,7 @@ void solution(int **g,int v)
     for(i=0;i<v;i++)
     {
         for(j=0;j<v;j++)
-            if (((g[i][j]==-2)||(g[i][j]==-3))&&(color[j]==color[i]))
+            if ((g[i][j]==-2)&&(color[j]==color[i]))
                 f=1;
     }
     if (f==0)
@@ -259,5 +279,5 @@ void solution(int **g,int v)
         printf("\n");
     }
     for(i=0;i<v;i++)
-        printf(" %d-%d;",i,color[i]);
-*/}
+        printf(" %d-%d;",i,color[i]);*/
+}
